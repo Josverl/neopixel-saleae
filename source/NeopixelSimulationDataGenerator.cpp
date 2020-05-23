@@ -4,7 +4,7 @@
 #include <AnalyzerHelpers.h>
 
 NeopixelSimulationDataGenerator::NeopixelSimulationDataGenerator()
-:	mSerialText( "My first analyzer, woo hoo!" ),
+:	mSerialText( "Not yet implemented" ),
 	mStringIndex( 0 )
 {
 }
