@@ -22,7 +22,7 @@ void NeopixelAnalyzerResults::GenerateBubbleText( U64 frame_index, Channel& chan
 	Frame frame = GetFrame( frame_index );
 
 	char number_str[128];
-	AnalyzerHelpers::GetNumberString( frame.mData1, display_base, 8, number_str, 128 );
+	sprintf(number_str, "%02X", frame.mData1);
 	AddResultString( number_str );
 }
 
@@ -60,23 +60,22 @@ void NeopixelAnalyzerResults::GenerateExportFile( const char* file, DisplayBase 
 
 void NeopixelAnalyzerResults::GenerateFrameTabularText( U64 frame_index, DisplayBase display_base )
 {
-#ifdef SUPPORTS_PROTOCOL_SEARCH
 	Frame frame = GetFrame( frame_index );
-	ClearTabularText();
+	ClearResultStrings();
 
 	char number_str[128];
-	AnalyzerHelpers::GetNumberString( frame.mData1, display_base, 8, number_str, 128 );
-	AddTabularText( number_str );
-#endif
+	sprintf(number_str, "%02X", frame.mData1);
+	AddResultString( number_str );
 }
 
 void NeopixelAnalyzerResults::GeneratePacketTabularText( U64 packet_id, DisplayBase display_base )
 {
-	//not supported
-
+	ClearResultStrings();
+	AddResultString( "not supported" );
 }
 
 void NeopixelAnalyzerResults::GenerateTransactionTabularText( U64 transaction_id, DisplayBase display_base )
 {
-	//not supported
+	ClearResultStrings();
+	AddResultString( "not supported" );
 }

@@ -4,16 +4,16 @@
 
 NeopixelAnalyzerSettings::NeopixelAnalyzerSettings()
 :	mInputChannel( UNDEFINED_CHANNEL ),
-	mBitRate( 9600 )
+	mBitRate( 800 )
 {
 	mInputChannelInterface.reset( new AnalyzerSettingInterfaceChannel() );
 	mInputChannelInterface->SetTitleAndTooltip( "Serial", "Standard Neopixel" );
 	mInputChannelInterface->SetChannel( mInputChannel );
 
 	mBitRateInterface.reset( new AnalyzerSettingInterfaceInteger() );
-	mBitRateInterface->SetTitleAndTooltip( "Bit Rate (Bits/S)",  "Specify the bit rate in bits per second." );
-	mBitRateInterface->SetMax( 6000000 );
-	mBitRateInterface->SetMin( 1 );
+	mBitRateInterface->SetTitleAndTooltip( "Bit Rate (kBits/S)",  "Specify the bit rate in kilobits per second." );
+	mBitRateInterface->SetMax( 800 );
+	mBitRateInterface->SetMin( 400 );
 	mBitRateInterface->SetInteger( mBitRate );
 
 	AddInterface( mInputChannelInterface.get() );

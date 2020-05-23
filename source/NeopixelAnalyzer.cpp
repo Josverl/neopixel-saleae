@@ -1,9 +1,10 @@
 #include "NeopixelAnalyzer.h"
 #include "NeopixelAnalyzerSettings.h"
 #include <AnalyzerChannelData.h>
+#include <algorithm>
 
 NeopixelAnalyzer::NeopixelAnalyzer()
-:	Analyzer2(),  
+:	Analyzer(),  
 	mSettings( new NeopixelAnalyzerSettings() ),
 	mSimulationInitilized( false )
 {
@@ -15,60 +16,69 @@ NeopixelAnalyzer::~NeopixelAnalyzer()
 	KillThread();
 }
 
-void NeopixelAnalyzer::SetupResults()
+void NeopixelAnalyzer::WorkerThread()
 {
 	mResults.reset( new NeopixelAnalyzerResults( this, mSettings.get() ) );
 	SetAnalyzerResults( mResults.get() );
 	mResults->AddChannelBubblesWillAppearOn( mSettings->mInputChannel );
-}
 
-void NeopixelAnalyzer::WorkerThread()
-{
 	mSampleRateHz = GetSampleRate();
 
 	mSerial = GetAnalyzerChannelData( mSettings->mInputChannel );
 
-	if( mSerial->GetBitState() == BIT_LOW )
+	if( mSerial->GetBitState() == BIT_LOW ) {
+		// Go to rising edge
 		mSerial->AdvanceToNextEdge();
+	} else {
+		// Go to falling edge
+		mSerial->AdvanceToNextEdge();
+		// Go to rising edge
+		mSerial->AdvanceToNextEdge();
+	}
 
-	U32 samples_per_bit = mSampleRateHz / mSettings->mBitRate;
-	U32 samples_to_first_center_of_first_data_bit = U32( 1.5 * double( mSampleRateHz ) / double( mSettings->mBitRate ) );
+	U32 samples_per_bit = mSampleRateHz / (mSettings->mBitRate * 1000);
 
 	for( ; ; )
 	{
 		U8 data = 0;
 		U8 mask = 1 << 7;
-		
-		mSerial->AdvanceToNextEdge(); //falling edge -- beginning of the start bit
 
 		U64 starting_sample = mSerial->GetSampleNumber();
+		//let's put a dot exactly where we sample this byte
+		mResults->AddMarker( starting_sample, AnalyzerResults::Dot, mSettings->mInputChannel );
 
-		mSerial->Advance( samples_to_first_center_of_first_data_bit );
-
+		U64 last_rising_sample;
 		for( U32 i=0; i<8; i++ )
 		{
-			//let's put a dot exactly where we sample this bit:
-			mResults->AddMarker( mSerial->GetSampleNumber(), AnalyzerResults::Dot, mSettings->mInputChannel );
+			// At rising edge
+			U64 rising_sample = mSerial->GetSampleNumber();
+			last_rising_sample = rising_sample;
+		
+			// Go to falling edge
+			mSerial->AdvanceToNextEdge();
 
-			if( mSerial->GetBitState() == BIT_HIGH )
+			U64 falling_sample = mSerial->GetSampleNumber();
+
+			if(falling_sample - rising_sample > samples_per_bit / 2) {
 				data |= mask;
-
-			mSerial->Advance( samples_per_bit );
+			}
 
 			mask = mask >> 1;
-		}
 
+			// Go to rising edge
+			mSerial->AdvanceToNextEdge();
+		}
 
 		//we have a byte to save. 
 		Frame frame;
 		frame.mData1 = data;
 		frame.mFlags = 0;
 		frame.mStartingSampleInclusive = starting_sample;
-		frame.mEndingSampleInclusive = mSerial->GetSampleNumber();
+		frame.mEndingSampleInclusive = std::min(last_rising_sample + samples_per_bit, mSerial->GetSampleNumber());
 
 		mResults->AddFrame( frame );
 		mResults->CommitResults();
-		ReportProgress( frame.mEndingSampleInclusive );
+		ReportProgress( mSerial->GetSampleNumber() );
 	}
 }
 
