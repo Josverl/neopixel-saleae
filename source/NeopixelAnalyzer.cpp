@@ -20,10 +20,20 @@ void NeopixelAnalyzer::WorkerThread()
 {
 	U64 pixelCounter = 0;					// more than long enough 
 	int colorCounter = 0;
-	char strColors[] = "GRB\0";				// Assume : todo Add AS AN OPTION GRB - Defaul - GRBW 
-	size_t MAX_RGBW = strlen(strColors);			
+	char strColors[] = "abcd\0";				
 
+	// needs to match the sequence number use in setting 
+	char *PixelTypes[6] = { "BGR\0","RGB\0", "GRB\0", "BGR\0", "BGRW\0", "RGBW\0" };
 	mResults.reset( new NeopixelAnalyzerResults( this, mSettings.get() ) );
+
+	// convert double to int to use as index 
+	int i = int(mSettings->mPixelType);
+
+	if (0 <= i && i < 6 ) {
+		strcpy_s(strColors, PixelTypes[i] );
+	}
+	size_t MAX_RGBW = strlen(strColors);
+
 	SetAnalyzerResults( mResults.get() );
 	mResults->AddChannelBubblesWillAppearOn( mSettings->mInputChannel );
 
@@ -49,17 +59,16 @@ void NeopixelAnalyzer::WorkerThread()
 		U8 data = 0;
 		U8 mask = 1 << 7;
 		// frame = 1 byte 
-
-
-		
 		
 		U64 starting_sample = mSerial->GetSampleNumber();
-		//if (colorCounter == 0) {
-		//	//mark start of a led 
-		//	mResults->AddMarker(starting_sample, AnalyzerResults::Start, mSettings->mInputChannel);
-		//}
-		//let's put a dot exactly where we sample this byte
-		mResults->AddMarker( starting_sample, AnalyzerResults::Dot, mSettings->mInputChannel );
+		if (colorCounter == 0) {
+			//mark start of a led with a Square
+			mResults->AddMarker(starting_sample, AnalyzerResults::Square, mSettings->mInputChannel);
+		}
+		else {
+			// let's put a Dot exactly where we sample this byte
+			mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mInputChannel);
+		}
 
 		U64 last_rising_sample;
 
@@ -105,7 +114,6 @@ void NeopixelAnalyzer::WorkerThread()
 			colorCounter = 0;
 			// note that Currently, Packets are only used when exporting data to text/csv. :-( 
 			mResults->CommitPacketAndStartNewPacket();
-			mResults->AddMarker(frame.mEndingSampleInclusive, AnalyzerResults::Stop, mSettings->mInputChannel);
 		}
 
 		mResults->CommitResults();
@@ -137,12 +145,13 @@ U32 NeopixelAnalyzer::GetMinimumSampleRateHz()
 
 const char* NeopixelAnalyzer::GetAnalyzerName() const
 {
-	return "Neopixel";
+
+	return "Neopixel IJK";
 }
 
 const char* GetAnalyzerName()
 {
-	return "Neopixel";
+	return "NeoPixel / WS2812";
 }
 
 Analyzer* CreateAnalyzer()

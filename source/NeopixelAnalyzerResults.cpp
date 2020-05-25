@@ -37,6 +37,7 @@ void NeopixelAnalyzerResults::GenerateBubbleText( U64 frame_index, Channel& chan
 	AddResultString( number_str);
 	AddResultString(color_str, "=",number_str);
 	AddResultString(counter_str,":" ,color_str, "=", number_str);
+	AddResultString("Pixel ", counter_str, " :", color_str, "=", number_str);
 }
 
 void NeopixelAnalyzerResults::GenerateExportFile( const char* file, DisplayBase display_base, U32 export_type_user_id )

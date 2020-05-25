@@ -18,10 +18,12 @@ public:
 	
 	Channel mInputChannel;
 	U32 mBitRate;
+	double mPixelType; // double , but only used as an index 
 
 protected:
 	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mInputChannelInterface;
-	std::auto_ptr< AnalyzerSettingInterfaceInteger >	mBitRateInterface;
+	std::auto_ptr< AnalyzerSettingInterfaceInteger>		mBitRateInterface;
+	std::auto_ptr< AnalyzerSettingInterfaceNumberList >	mPixelTypeInterface;
 };
 
 #endif //NEOPIXEL_ANALYZER_SETTINGS
