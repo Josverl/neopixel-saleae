@@ -7,7 +7,7 @@ NeopixelAnalyzerSettings::NeopixelAnalyzerSettings()
 	mBitRate( 800 )
 {
 	mInputChannelInterface.reset( new AnalyzerSettingInterfaceChannel() );
-	mInputChannelInterface->SetTitleAndTooltip( "Serial", "Standard Neopixel" );
+	mInputChannelInterface->SetTitleAndTooltip( "NeoPixel", "Standard Neopixel" );
 	mInputChannelInterface->SetChannel( mInputChannel );
 
 	mBitRateInterface.reset( new AnalyzerSettingInterfaceInteger() );
@@ -15,6 +15,8 @@ NeopixelAnalyzerSettings::NeopixelAnalyzerSettings()
 	mBitRateInterface->SetMax( 800 );
 	mBitRateInterface->SetMin( 400 );
 	mBitRateInterface->SetInteger( mBitRate );
+
+
 
 	AddInterface( mInputChannelInterface.get() );
 	AddInterface( mBitRateInterface.get() );

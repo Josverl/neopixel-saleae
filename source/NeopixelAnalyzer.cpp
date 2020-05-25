@@ -18,6 +18,10 @@ NeopixelAnalyzer::~NeopixelAnalyzer()
 
 void NeopixelAnalyzer::WorkerThread()
 {
+	long byteCounter = 0;
+	int rgbwCounter = 0;
+	char strRGBW[] = "RGBW\0";
+
 	mResults.reset( new NeopixelAnalyzerResults( this, mSettings.get() ) );
 	SetAnalyzerResults( mResults.get() );
 	mResults->AddChannelBubblesWillAppearOn( mSettings->mInputChannel );
@@ -26,6 +30,7 @@ void NeopixelAnalyzer::WorkerThread()
 
 	mSerial = GetAnalyzerChannelData( mSettings->mInputChannel );
 
+	//todo: - check timing against specs and flag errors 
 	if( mSerial->GetBitState() == BIT_LOW ) {
 		// Go to rising edge
 		mSerial->AdvanceToNextEdge();
@@ -43,11 +48,15 @@ void NeopixelAnalyzer::WorkerThread()
 		U8 data = 0;
 		U8 mask = 1 << 7;
 
-		U64 starting_sample = mSerial->GetSampleNumber();
+
+		// todo: mark each Colow Sequence , rather than each byte 
 		//let's put a dot exactly where we sample this byte
+		U64 starting_sample = mSerial->GetSampleNumber();
 		mResults->AddMarker( starting_sample, AnalyzerResults::Dot, mSettings->mInputChannel );
 
 		U64 last_rising_sample;
+
+		// count 8 bits per color 
 		for( U32 i=0; i<8; i++ )
 		{
 			// At rising edge
@@ -56,13 +65,13 @@ void NeopixelAnalyzer::WorkerThread()
 		
 			// Go to falling edge
 			mSerial->AdvanceToNextEdge();
-
 			U64 falling_sample = mSerial->GetSampleNumber();
+			// todo , check for timing is in bounds , if too long then showw error 
 
+			// found bit = 1, add to data 
 			if(falling_sample - rising_sample > samples_per_bit / 2) {
 				data |= mask;
 			}
-
 			mask = mask >> 1;
 
 			// Go to rising edge
@@ -75,6 +84,7 @@ void NeopixelAnalyzer::WorkerThread()
 		frame.mFlags = 0;
 		frame.mStartingSampleInclusive = starting_sample;
 		frame.mEndingSampleInclusive = std::min(last_rising_sample + samples_per_bit, mSerial->GetSampleNumber());
+
 
 		mResults->AddFrame( frame );
 		mResults->CommitResults();
@@ -100,6 +110,7 @@ U32 NeopixelAnalyzer::GenerateSimulationData( U64 minimum_sample_index, U32 devi
 
 U32 NeopixelAnalyzer::GetMinimumSampleRateHz()
 {
+	// The rule of thumb is to require oversampling by x4 
 	return mSettings->mBitRate * 4;
 }
 

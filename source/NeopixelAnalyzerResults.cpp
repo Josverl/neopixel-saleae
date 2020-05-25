@@ -22,7 +22,9 @@ void NeopixelAnalyzerResults::GenerateBubbleText( U64 frame_index, Channel& chan
 	Frame frame = GetFrame( frame_index );
 
 	char number_str[128];
-	sprintf(number_str, "%02X", frame.mData1);
+	// mData1 = led value 
+	// mData2 = RGBW char 
+	AnalyzerHelpers::GetNumberString(frame.mData1, display_base, 8, number_str, 128); 
 	AddResultString( number_str );
 }
 
@@ -64,7 +66,8 @@ void NeopixelAnalyzerResults::GenerateFrameTabularText( U64 frame_index, Display
 	ClearResultStrings();
 
 	char number_str[128];
-	sprintf(number_str, "%02X", frame.mData1);
+	// led data in mData1
+	AnalyzerHelpers::GetNumberString(frame.mData1, display_base, 8, number_str, 128);
 	AddResultString( number_str );
 }
 
