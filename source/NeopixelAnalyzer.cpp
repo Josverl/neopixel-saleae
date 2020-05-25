@@ -20,7 +20,8 @@ void NeopixelAnalyzer::WorkerThread()
 {
 	long byteCounter = 0;
 	int rgbwCounter = 0;
-	char strRGBW[] = "RGBW\0";
+	char strColors[] = "GRB\0";				// Assume : todo Add AS AN OPTION GRB - Defaul - GRBW 
+	int MAX_RGBW = strlen(strColors);			
 
 	mResults.reset( new NeopixelAnalyzerResults( this, mSettings.get() ) );
 	SetAnalyzerResults( mResults.get() );
@@ -47,9 +48,10 @@ void NeopixelAnalyzer::WorkerThread()
 	{
 		U8 data = 0;
 		U8 mask = 1 << 7;
+		// frame = 1 byte 
 
 
-		// todo: mark each Colow Sequence , rather than each byte 
+		// todo: mark each Color Sequence as a 
 		//let's put a dot exactly where we sample this byte
 		U64 starting_sample = mSerial->GetSampleNumber();
 		mResults->AddMarker( starting_sample, AnalyzerResults::Dot, mSettings->mInputChannel );
@@ -66,7 +68,7 @@ void NeopixelAnalyzer::WorkerThread()
 			// Go to falling edge
 			mSerial->AdvanceToNextEdge();
 			U64 falling_sample = mSerial->GetSampleNumber();
-			// todo , check for timing is in bounds , if too long then showw error 
+			// todo , check for timing is in bounds , if too long then show error 
 
 			// found bit = 1, add to data 
 			if(falling_sample - rising_sample > samples_per_bit / 2) {
@@ -81,6 +83,10 @@ void NeopixelAnalyzer::WorkerThread()
 		//we have a byte to save. 
 		Frame frame;
 		frame.mData1 = data;
+		frame.mData2 = strColors[rgbwCounter++];
+		if (rgbwCounter >= MAX_RGBW) {
+			rgbwCounter = 0;
+		}
 		frame.mFlags = 0;
 		frame.mStartingSampleInclusive = starting_sample;
 		frame.mEndingSampleInclusive = std::min(last_rising_sample + samples_per_bit, mSerial->GetSampleNumber());
