@@ -20,18 +20,23 @@ void NeopixelAnalyzerResults::GenerateBubbleText( U64 frame_index, Channel& chan
 {
 	ClearResultStrings();
 	Frame frame = GetFrame( frame_index );
+	
 
 	char number_str[12];
+	char counter_str[12];
 	char color_str[2] = "X";
 
 	// mData1 = led value 
-	// mData2 = RGBW char 
+	// mData2 = neopixelcount
+	// mtype = RGBW char 
 	AnalyzerHelpers::GetNumberString(frame.mData1, display_base, 8, number_str, 12); 
-	color_str[0] = char(frame.mData2);
+	AnalyzerHelpers::GetNumberString(frame.mData2, display_base, 8, counter_str, 12);
+	color_str[0] = char(frame.mType);
 	// add a few different lengths 
 	AddResultString(color_str);
 	AddResultString( number_str);
-	AddResultString(color_str, ":",number_str);
+	AddResultString(color_str, "=",number_str);
+	AddResultString(counter_str,":" ,color_str, "=", number_str);
 }
 
 void NeopixelAnalyzerResults::GenerateExportFile( const char* file, DisplayBase display_base, U32 export_type_user_id )

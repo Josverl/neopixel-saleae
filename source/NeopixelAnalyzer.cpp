@@ -18,7 +18,7 @@ NeopixelAnalyzer::~NeopixelAnalyzer()
 
 void NeopixelAnalyzer::WorkerThread()
 {
-	long byteCounter = 0;
+	U64 pixelCounter = 0;					// more than long enough 
 	int colorCounter = 0;
 	char strColors[] = "GRB\0";				// Assume : todo Add AS AN OPTION GRB - Defaul - GRBW 
 	size_t MAX_RGBW = strlen(strColors);			
@@ -88,7 +88,9 @@ void NeopixelAnalyzer::WorkerThread()
 		//we have a byte to save. 
 		Frame frame;
 		frame.mData1 = data;
-		frame.mData2 = strColors[colorCounter++];
+		frame.mData2 = pixelCounter;
+		// RGBW as Type 
+		frame.mType = U8 ( strColors[colorCounter++]) ;
 		frame.mFlags = 0;
 		frame.mStartingSampleInclusive = starting_sample;
 		frame.mEndingSampleInclusive = std::min(last_rising_sample + samples_per_bit, mSerial->GetSampleNumber());
@@ -99,6 +101,7 @@ void NeopixelAnalyzer::WorkerThread()
 		// at end of led 
 		if (colorCounter >= MAX_RGBW) {
 			// mark end of a led 
+			pixelCounter++;
 			colorCounter = 0;
 			// note that Currently, Packets are only used when exporting data to text/csv. :-( 
 			mResults->CommitPacketAndStartNewPacket();

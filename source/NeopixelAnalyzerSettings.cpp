@@ -7,7 +7,7 @@ NeopixelAnalyzerSettings::NeopixelAnalyzerSettings()
 	mBitRate( 800 )
 {
 	mInputChannelInterface.reset( new AnalyzerSettingInterfaceChannel() );
-	mInputChannelInterface->SetTitleAndTooltip( "NeoPixel", "Standard Neopixel" );
+	mInputChannelInterface->SetTitleAndTooltip( "NeoPixel WS2812", "Standard Neopixel" );
 	mInputChannelInterface->SetChannel( mInputChannel );
 
 	mBitRateInterface.reset( new AnalyzerSettingInterfaceInteger() );
@@ -39,7 +39,7 @@ bool NeopixelAnalyzerSettings::SetSettingsFromInterfaces()
 	mBitRate = mBitRateInterface->GetInteger();
 
 	ClearChannels();
-	AddChannel( mInputChannel, "Neopixel", true );
+	AddChannel( mInputChannel, "Neopixel WS2812", true );
 
 	return true;
 }
@@ -59,7 +59,7 @@ void NeopixelAnalyzerSettings::LoadSettings( const char* settings )
 	text_archive >> mBitRate;
 
 	ClearChannels();
-	AddChannel( mInputChannel, "Neopixel", true );
+	AddChannel( mInputChannel, "Neopixel WS2812", true );
 
 	UpdateInterfacesFromSettings();
 }
