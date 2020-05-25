@@ -5,6 +5,10 @@
 #include "NeopixelAnalyzerResults.h"
 #include "NeopixelSimulationDataGenerator.h"
 
+#if defined(_MSC_VER)
+	#pragma warning (disable: 4251)
+#endif
+
 class NeopixelAnalyzerSettings;
 class ANALYZER_EXPORT NeopixelAnalyzer : public Analyzer
 {
