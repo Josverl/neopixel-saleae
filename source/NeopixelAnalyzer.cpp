@@ -19,9 +19,9 @@ NeopixelAnalyzer::~NeopixelAnalyzer()
 void NeopixelAnalyzer::WorkerThread()
 {
 	long byteCounter = 0;
-	int rgbwCounter = 0;
+	int colorCounter = 0;
 	char strColors[] = "GRB\0";				// Assume : todo Add AS AN OPTION GRB - Defaul - GRBW 
-	int MAX_RGBW = strlen(strColors);			
+	size_t MAX_RGBW = strlen(strColors);			
 
 	mResults.reset( new NeopixelAnalyzerResults( this, mSettings.get() ) );
 	SetAnalyzerResults( mResults.get() );
@@ -51,9 +51,14 @@ void NeopixelAnalyzer::WorkerThread()
 		// frame = 1 byte 
 
 
-		// todo: mark each Color Sequence as a 
-		//let's put a dot exactly where we sample this byte
+		
+		
 		U64 starting_sample = mSerial->GetSampleNumber();
+		//if (colorCounter == 0) {
+		//	//mark start of a led 
+		//	mResults->AddMarker(starting_sample, AnalyzerResults::Start, mSettings->mInputChannel);
+		//}
+		//let's put a dot exactly where we sample this byte
 		mResults->AddMarker( starting_sample, AnalyzerResults::Dot, mSettings->mInputChannel );
 
 		U64 last_rising_sample;
@@ -83,16 +88,23 @@ void NeopixelAnalyzer::WorkerThread()
 		//we have a byte to save. 
 		Frame frame;
 		frame.mData1 = data;
-		frame.mData2 = strColors[rgbwCounter++];
-		if (rgbwCounter >= MAX_RGBW) {
-			rgbwCounter = 0;
-		}
+		frame.mData2 = strColors[colorCounter++];
 		frame.mFlags = 0;
 		frame.mStartingSampleInclusive = starting_sample;
 		frame.mEndingSampleInclusive = std::min(last_rising_sample + samples_per_bit, mSerial->GetSampleNumber());
+		
 
 
 		mResults->AddFrame( frame );
+		// at end of led 
+		if (colorCounter >= MAX_RGBW) {
+			// mark end of a led 
+			colorCounter = 0;
+			// note that Currently, Packets are only used when exporting data to text/csv. :-( 
+			mResults->CommitPacketAndStartNewPacket();
+			mResults->AddMarker(frame.mEndingSampleInclusive, AnalyzerResults::Stop, mSettings->mInputChannel);
+		}
+
 		mResults->CommitResults();
 		ReportProgress( mSerial->GetSampleNumber() );
 	}
